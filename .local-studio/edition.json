@@ -1,0 +1,8 @@
+{
+  "cliReleaseRepository": "sybil-solutions/local-studio",
+  "cliReleaseTagPrefix": "code-v",
+  "desktopStateDir": ".local-studio/t3",
+  "appId": "ai.localstudio.t3",
+  "productName": "Local Studio Code",
+  "updateFeedTag": "code-feed"
+}
