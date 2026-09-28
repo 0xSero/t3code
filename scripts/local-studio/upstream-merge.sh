@@ -56,7 +56,14 @@ behind="$(git rev-list --count "$target_sha..$upstream_sha")"
 message="Merge upstream pingdotgg/t3code main ($(git rev-parse --short "$upstream_sha"), $behind commits)"
 
 if git merge --no-ff --no-edit -m "$message" "$upstream_sha"; then
-  echo "upstream-merge: clean merge of $behind upstream commits"
+  echo "upstream-merge: clean merge of $behind upstream commits; regenerating generated files"
+  bash scripts/local-studio/resolve-generated.sh --all
+  awk -F'\t' '$2 == "-" { print $1 }' .local-studio/hooks.txt | while IFS= read -r path; do
+    git add -- "$path"
+  done
+  if ! git diff --cached --quiet; then
+    git commit --amend --no-edit
+  fi
 else
   echo "upstream-merge: merge stopped with conflicts; resolving generated files"
   if ! bash scripts/local-studio/resolve-generated.sh; then
