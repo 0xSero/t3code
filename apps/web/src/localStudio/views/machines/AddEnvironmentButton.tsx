@@ -1,4 +1,4 @@
-import type { T3Pairing } from "@local-studio/contracts/client";
+import type { T3Pairing, T3Status } from "@local-studio/contracts/client";
 import { type MachineView, via } from "@local-studio/local-ai-model";
 import {
   isAtomCommandInterrupted,
@@ -16,6 +16,23 @@ import { controllerFetch, controllerJson } from "../../state/controllerClient";
 
 const PAIR_TIMEOUT_MS = 90_000;
 
+const ensureT3Running = async (environmentId: EnvironmentId, machine: MachineView) => {
+  const status = await controllerFetch<T3Status>(environmentId, via(machine.peerId, "/api/t3"));
+  if (status.state === "running") return;
+  if (status.state === "unavailable") {
+    throw new Error(status.error ?? `${machine.name} has no T3 CLI installed for its controller.`);
+  }
+  const started = await controllerFetch<T3Status>(
+    environmentId,
+    via(machine.peerId, "/api/t3/start"),
+    controllerJson("POST", {}),
+    PAIR_TIMEOUT_MS,
+  );
+  if (started.state !== "running") {
+    throw new Error(started.error ?? `T3 on ${machine.name} did not start (${started.state}).`);
+  }
+};
+
 const failureText = (error: unknown): string =>
   error instanceof Error ? error.message : "The machine could not be added.";
 
@@ -32,6 +49,7 @@ export function AddEnvironmentButton({
   const add = async () => {
     setBusy(true);
     try {
+      await ensureT3Running(environmentId, machine);
       const pairing = await controllerFetch<T3Pairing>(
         environmentId,
         via(machine.peerId, "/api/t3/pair"),
