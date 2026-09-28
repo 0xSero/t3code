@@ -1,0 +1,227 @@
+name: Local Studio CI
+
+on:
+  pull_request:
+    branches:
+      - local-studio
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to check
+        type: string
+        required: false
+      artifacts:
+        description: Build unsigned desktop artifacts
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
+      artifacts:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ls-ci-${{ inputs.ref || github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CHECK_REF: ${{ inputs.ref || github.event.pull_request.head.sha || github.sha }}
+  UPSTREAM_URL: https://github.com/pingdotgg/t3code.git
+
+jobs:
+  check:
+    name: Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CHECK_REF }}
+          fetch-depth: 0
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Fetch upstream main
+        run: git fetch --no-tags "$UPSTREAM_URL" +refs/heads/main:refs/remotes/upstream/main
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: false
+
+      - name: Install (frozen lockfile)
+        run: vp install --frozen-lockfile
+
+      - name: Ensure Electron runtime is installed
+        run: vp run --filter @t3tools/desktop ensure:electron
+
+      - name: Conflict surface
+        run: node scripts/local-studio/conflict-surface.ts --committed --base upstream/main
+
+      - name: Generated files
+        run: node scripts/local-studio/check-generated.ts
+
+      - name: Unused code
+        run: vp run knip:check
+
+      - name: Lint and format
+        run: vp check
+
+      - name: Typecheck
+        run: vp run typecheck
+
+      - name: Install browser secret helper build libraries
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev pkg-config
+
+      - name: Build desktop pipeline
+        run: vp run build:desktop
+
+      - name: Verify preload bundle output
+        run: node apps/desktop/scripts/verify-preload-bundle.mjs
+
+      - name: Conflict surface report
+        if: always()
+        run: node scripts/local-studio/conflict-surface.ts --committed --base upstream/main --markdown >> "$GITHUB_STEP_SUMMARY" || true
+
+  test:
+    name: Upstream tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CHECK_REF }}
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: true
+
+      - name: Ensure Electron runtime is installed
+        run: vp run --filter @t3tools/desktop ensure:electron
+
+      - name: Install browser secret helper build libraries
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev pkg-config
+
+      - name: Test preview artifact validation
+        run: python3 -B .github/scripts/stage-preview-bundle.test.py
+
+      - name: Test nightly release checks
+        run: node --test .github/scripts/check-nightly-release.test.cjs
+
+      - name: Test
+        run: vp run --parallel --concurrency-limit 4 --filter '!t3' --filter '!@t3tools/monorepo' test
+
+  test_server:
+    name: Upstream server tests ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CHECK_REF }}
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: true
+
+      - name: Test
+        run: vp run --filter t3 test --shard ${{ matrix.shard }}/${{ strategy.job-total }}
+
+  desktop:
+    name: Unsigned desktop ${{ matrix.label }}
+    if: github.event_name == 'pull_request' || inputs.artifacts
+    needs: check
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: linux-x64
+            runner: ubuntu-latest
+            platform: linux
+            target: AppImage
+            arch: x64
+          - label: mac-arm64
+            runner: macos-latest
+            platform: mac
+            target: dmg
+            arch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CHECK_REF }}
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux desktop build libraries
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecret-1-dev pkg-config
+          if ! command -v magick >/dev/null 2>&1 && ! command -v convert >/dev/null 2>&1; then
+            sudo apt-get install -y imagemagick
+          fi
+
+      - name: Build unsigned artifact
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: >-
+          vp run dist:desktop:artifact
+          --platform ${{ matrix.platform }}
+          --target ${{ matrix.target }}
+          --arch ${{ matrix.arch }}
+          --output-dir release
+          --verbose
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: local-studio-desktop-unsigned-${{ matrix.label }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 7
