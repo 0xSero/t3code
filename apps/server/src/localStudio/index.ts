@@ -11,6 +11,7 @@ import {
   failEnvironmentInternal,
   failEnvironmentScopeRequired,
 } from "../auth/http.ts";
+import { localStudioProviderSyncLayer } from "../provider/localStudio/index.ts";
 import * as LocalStudioGateway from "./LocalStudioGateway.ts";
 
 const LOCAL_STUDIO_ROUTE_PREFIX = "/api/local-studio";
@@ -55,4 +56,7 @@ const healthRouteLayer = Layer.unwrap(
   }),
 );
 
-export const localStudioRouteLayer = healthRouteLayer.pipe(Layer.provide(LocalStudioGateway.layer));
+export const localStudioRouteLayer = Layer.merge(
+  healthRouteLayer.pipe(Layer.provide(LocalStudioGateway.layer)),
+  localStudioProviderSyncLayer,
+);
