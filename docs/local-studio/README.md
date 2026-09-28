@@ -4,6 +4,7 @@ This branch line (`local-studio`, fed by `feat/local-studio-edition`) is T3 Code
 
 - Plan and owner decisions: [PLAN.md](PLAN.md). The "Owner decisions" section overrides the rest.
 - Commands: [DEV.md](DEV.md).
+- Upstream sync, CI, the conflict-surface gate and the contracts sync: [sync.md](sync.md).
 
 ## Layout
 
