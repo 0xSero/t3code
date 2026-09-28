@@ -1,20 +1,22 @@
 import { LOCAL_AI_DRIVER_KIND, LOCAL_AI_ROUTE_PATH } from "@local-studio/t3-providers";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-function readInstanceId(search: unknown): string | null {
-  if (typeof search !== "object" || search === null || !("instanceId" in search)) return null;
-  const value = search.instanceId;
-  return typeof value === "string" ? value : null;
+function isLocalAiSetupLocation(location: { pathname: string; search: string }): boolean {
+  if (location.pathname !== "/settings/providers") return false;
+  const instanceId = new URLSearchParams(location.search).get("instanceId");
+  return instanceId === LOCAL_AI_DRIVER_KIND || instanceId === `"${LOCAL_AI_DRIVER_KIND}"`;
 }
 
 export function useLocalAiSetupRedirect(): void {
-  const navigate = useNavigate();
-  const pathname = useLocation({ select: (location) => location.pathname });
-  const instanceId = useLocation({ select: (location) => readInstanceId(location.search) });
-  useEffect(() => {
-    if (pathname === "/settings/providers" && instanceId === LOCAL_AI_DRIVER_KIND) {
-      void navigate({ to: LOCAL_AI_ROUTE_PATH, replace: true });
-    }
-  }, [instanceId, navigate, pathname]);
+  const router = useRouter();
+  useEffect(
+    () =>
+      router.history.subscribe(({ location }) => {
+        if (isLocalAiSetupLocation(location)) {
+          void router.navigate({ to: LOCAL_AI_ROUTE_PATH, replace: true });
+        }
+      }),
+    [router],
+  );
 }

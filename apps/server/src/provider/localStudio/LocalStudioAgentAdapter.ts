@@ -268,6 +268,7 @@ export function makeLocalStudioAgentAdapter(options: LocalStudioAgentAdapterOpti
               cwd,
               runtimeMode: input.runtimeMode,
               workspace: input.threadId,
+              path,
               baseEnvironment: McpProviderSession.withAgentDeviceEnvironment(
                 options.environment,
                 mcpSession,

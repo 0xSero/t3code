@@ -156,11 +156,10 @@ export function buildLocalStudioSpawnInput(input: {
   readonly baseEnvironment: NodeJS.ProcessEnv;
   readonly overrides?: NodeJS.ProcessEnv;
   readonly bridge?: { readonly nodeCommand: string; readonly bridgePath: string };
+  readonly path: Path.Path;
 }): AcpSessionRuntime.AcpSpawnInput {
   const homeDir = NodeOS.homedir();
-  const relativeAgentDir = input.agentDir.startsWith(`${homeDir}/`)
-    ? input.agentDir.slice(homeDir.length + 1)
-    : input.agentDir;
+  const relativeAgentDir = input.path.relative(homeDir, input.agentDir);
   const env = buildHarnessEnvironment({
     harness: input.launch.harness,
     base: input.baseEnvironment,
