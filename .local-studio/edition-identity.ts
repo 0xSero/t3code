@@ -51,7 +51,9 @@ const env = (controllerDir: string | undefined) => {
 
 const feed = (assetsDir: string, version: string) => {
   const base = releaseBaseUrl(`${identity.cliReleaseTagPrefix}${version}`);
-  const manifests = NodeFS.readdirSync(assetsDir).filter((name) => /\.ya?ml$/.test(name));
+  const manifests = NodeFS.readdirSync(assetsDir).filter((name) =>
+    /^(latest|nightly).*\.ya?ml$/.test(name),
+  );
   if (manifests.length === 0) throw new Error(`no update manifests in ${assetsDir}`);
   for (const name of manifests) {
     const path = NodePath.join(assetsDir, name);
