@@ -1,0 +1,5 @@
+repository=sybil-solutions/local-studio
+path=packages/contracts/src
+commit=ca06718f67173f074caefb68ba49ec1606bd063c
+source=/Users/sero/projects/worktrees/local-ai-system
+transform=relative imports rewritten from "./x" to "./x.ts"

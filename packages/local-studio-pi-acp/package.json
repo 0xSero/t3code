@@ -1,0 +1,16 @@
+{
+  "name": "@local-studio/pi-acp",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./bundle": {
+      "types": "./src/bundle.generated.ts",
+      "import": "./src/bundle.generated.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
