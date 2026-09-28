@@ -192,7 +192,8 @@ export function buildLocalStudioSpawnInput(input: {
       input.launch.binaryPath,
       "--agent-dir",
       input.agentDir,
-      ...(piNeedsApprovalGate(input.runtimeMode) ? ["--approval-gate"] : []),
+      ...(piNeedsApprovalGate(input.runtimeMode) ? ["--approval"] : []),
+      ...PI_BRIDGE_PASS_ENV.flatMap((name) => ["--pass-env", name]),
       ...input.launch.extraArgs.flatMap((arg) => ["--pi-arg", arg]),
     ],
     cwd: input.cwd,
@@ -200,6 +201,13 @@ export function buildLocalStudioSpawnInput(input: {
     extendEnv: false,
   };
 }
+
+const PI_BRIDGE_PASS_ENV = [
+  "LOCAL_STUDIO_WORKSPACE",
+  "PI_OFFLINE",
+  "PI_SKIP_VERSION_CHECK",
+  "PI_TELEMETRY",
+] as const;
 
 export const makeLocalStudioAcpRuntime = (
   input: Omit<AcpSessionRuntime.AcpSessionRuntimeOptions, "authMethodId"> & {

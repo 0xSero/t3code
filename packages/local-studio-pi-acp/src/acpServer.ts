@@ -20,6 +20,7 @@ export interface BridgeConfig {
   readonly model: string | null;
   readonly thinking: string | null;
   readonly extensionPath: string | null;
+  readonly piArgs: ReadonlyArray<string>;
   readonly env: Readonly<Record<string, string>>;
   readonly version: string;
 }
@@ -294,6 +295,7 @@ class PiSession {
       "--no-approve",
       "--offline",
       ...(config.extensionPath === null ? [] : ["--extension", config.extensionPath]),
+      ...config.piArgs,
     ];
     this.pi = new PiRpc(
       {

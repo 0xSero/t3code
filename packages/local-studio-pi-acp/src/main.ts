@@ -59,6 +59,7 @@ Options:
   --thinking <level>  Initial thinking level
   --approval          Ask the ACP client before mutating tool calls
   --pass-env <NAME>   Extra environment variable to pass to pi (repeatable)
+  --pi-arg <arg>      Extra argument appended to the pi command line (repeatable)
 `;
 
 const buildEnv = (extra: ReadonlyArray<string>): Record<string, string> => {
@@ -85,6 +86,7 @@ const parseConfig = (argv: ReadonlyArray<string>, selfPath: string): BridgeConfi
       thinking: { type: "string" },
       approval: { type: "boolean" },
       "pass-env": { type: "string", multiple: true },
+      "pi-arg": { type: "string", multiple: true },
       help: { type: "boolean" },
       version: { type: "boolean" },
     },
@@ -110,6 +112,7 @@ const parseConfig = (argv: ReadonlyArray<string>, selfPath: string): BridgeConfi
     model: values.model ?? null,
     thinking: values.thinking ?? null,
     extensionPath: values.approval ? selfPath : null,
+    piArgs: values["pi-arg"] ?? [],
     env: buildEnv(values["pass-env"] ?? []),
     version: PI_ACP_VERSION,
   };
