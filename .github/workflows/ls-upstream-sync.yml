@@ -1,0 +1,264 @@
+name: Local Studio upstream sync
+
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Branch that receives upstream (local-studio in production)
+        type: string
+        default: local-studio
+      dry_run:
+        description: Merge and run the gates, but do not push the target or the upstream mirror, open a PR or dispatch a release
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: ls-upstream-sync-${{ inputs.target || 'local-studio' }}
+  cancel-in-progress: false
+
+env:
+  TARGET: ${{ inputs.target || 'local-studio' }}
+  DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+  UPSTREAM_URL: https://github.com/pingdotgg/t3code.git
+  SYNC_LABEL: upstream-sync
+
+jobs:
+  merge:
+    name: Merge upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      status: ${{ steps.merge.outputs.status }}
+      merged_sha: ${{ steps.merge.outputs.merged_sha }}
+      upstream_sha: ${{ steps.merge.outputs.upstream_sha }}
+      target_sha: ${{ steps.merge.outputs.target_sha }}
+      branch: ${{ steps.names.outputs.branch }}
+    steps:
+      - name: Checkout target
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TARGET }}
+          fetch-depth: 0
+          token: ${{ secrets.LS_SYNC_TOKEN || github.token }}
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: true
+
+      - name: Restore rerere cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .git/rr-cache
+          key: ls-rr-cache-${{ github.run_id }}
+          restore-keys: ls-rr-cache-
+
+      - name: Configure git
+        run: |
+          git config user.name "local-studio-sync[bot]"
+          git config user.email "local-studio-sync@users.noreply.github.com"
+          git config rerere.enabled true
+          git config rerere.autoupdate true
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --no-tags upstream main
+
+      - name: Name the sync branch
+        id: names
+        run: echo "branch=sync/$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+
+      - name: Fast-forward the upstream mirror
+        if: env.TARGET == 'local-studio' && env.DRY_RUN != 'true'
+        run: git push origin refs/remotes/upstream/main:refs/heads/upstream
+
+      - name: Merge upstream/main
+        id: merge
+        run: >-
+          bash scripts/local-studio/upstream-merge.sh
+          --target "origin/$TARGET"
+          --upstream upstream/main
+          --branch "${{ steps.names.outputs.branch }}"
+          --report-dir "$RUNNER_TEMP/sync"
+
+      - name: Push the sync branch for the gates
+        if: steps.merge.outputs.status == 'merged'
+        run: git push --force origin "HEAD:refs/heads/${{ steps.names.outputs.branch }}"
+
+      - name: Save rerere cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .git/rr-cache
+          key: ls-rr-cache-${{ github.run_id }}
+
+      - name: Upload merge report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ls-sync-report
+          path: ${{ runner.temp }}/sync/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Summary
+        run: |
+          {
+            echo "### Upstream sync into \`$TARGET\`"
+            echo ""
+            echo "- status: ${{ steps.merge.outputs.status }}"
+            echo "- upstream: ${{ steps.merge.outputs.upstream_sha }}"
+            echo "- target: ${{ steps.merge.outputs.target_sha }}"
+            echo "- merged: ${{ steps.merge.outputs.merged_sha }}"
+            echo "- dry run: $DRY_RUN"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  gates:
+    name: Gates
+    needs: merge
+    if: needs.merge.outputs.status == 'merged'
+    uses: ./.github/workflows/ls-ci.yml
+    with:
+      ref: ${{ needs.merge.outputs.merged_sha }}
+      artifacts: false
+
+  publish:
+    name: Publish or report
+    needs: [merge, gates]
+    if: always() && needs.merge.result == 'success' && needs.merge.outputs.status != 'up-to-date'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.LS_SYNC_TOKEN || github.token }}
+      STATUS: ${{ needs.merge.outputs.status }}
+      GATES: ${{ needs.gates.result }}
+      BRANCH: ${{ needs.merge.outputs.branch }}
+      MERGED_SHA: ${{ needs.merge.outputs.merged_sha }}
+      UPSTREAM_SHA: ${{ needs.merge.outputs.upstream_sha }}
+      TARGET_SHA: ${{ needs.merge.outputs.target_sha }}
+      RELEASE_REPO: ${{ vars.LS_RELEASE_REPO }}
+      RELEASE_WORKFLOW: ${{ vars.LS_RELEASE_WORKFLOW }}
+      RELEASE_TOKEN: ${{ secrets.LS_RELEASE_TOKEN }}
+    steps:
+      - name: Checkout target
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TARGET }}
+          fetch-depth: 0
+          token: ${{ secrets.LS_SYNC_TOKEN || github.token }}
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Download merge report
+        uses: actions/download-artifact@v8
+        with:
+          name: ls-sync-report
+          path: ${{ runner.temp }}/sync
+
+      - name: Fetch upstream and the sync branch
+        run: |
+          git fetch --no-tags "$UPSTREAM_URL" +refs/heads/main:refs/remotes/upstream/main
+          if [ "$STATUS" = "merged" ]; then
+            git fetch --no-tags origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"
+          fi
+
+      - name: Fast-forward the target
+        id: ff
+        if: env.STATUS == 'merged' && env.GATES == 'success'
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run: would fast-forward $TARGET to $MERGED_SHA" >> "$GITHUB_STEP_SUMMARY"
+          else
+            git push origin "$MERGED_SHA:refs/heads/$TARGET"
+            echo "Fast-forwarded \`$TARGET\` to $MERGED_SHA" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          git push origin --delete "$BRANCH" || true
+          echo "done=true" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch the nightly release
+        if: steps.ff.outputs.done == 'true' && env.DRY_RUN != 'true' && env.RELEASE_REPO != '' && env.RELEASE_WORKFLOW != ''
+        env:
+          GH_TOKEN: ${{ secrets.LS_RELEASE_TOKEN }}
+        run: gh workflow run "$RELEASE_WORKFLOW" -R "$RELEASE_REPO" -f channel=nightly -f ref="$MERGED_SHA"
+
+      - name: Build the report
+        if: steps.ff.outputs.done != 'true'
+        run: |
+          report="$RUNNER_TEMP/report.md"
+          behind="$(git rev-list --count "$TARGET_SHA..$UPSTREAM_SHA")"
+          {
+            echo "Automated merge of upstream \`pingdotgg/t3code\` main ($UPSTREAM_SHA, $behind commits) into \`$TARGET\` ($TARGET_SHA) needs attention."
+            echo ""
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo ""
+            if [ "$STATUS" = "conflict" ]; then
+              echo "### Conflicts"
+              echo ""
+              echo "Generated files (pnpm-lock.yaml, routeTree.gen.ts) were resolved automatically. These need a human:"
+              echo ""
+              while IFS= read -r path; do echo "- \`$path\`"; done < "$RUNNER_TEMP/sync/conflicts.txt"
+              echo ""
+              echo "This branch points at upstream. To resolve:"
+              echo ""
+              echo '```sh'
+              echo "git fetch origin && git checkout -B $BRANCH origin/$BRANCH"
+              echo "git merge origin/$TARGET"
+              echo "bash scripts/local-studio/resolve-generated.sh"
+              echo "git commit && git push origin $BRANCH"
+              echo '```'
+            else
+              echo "### Failing gates"
+              echo ""
+              echo "The merge is clean, but the gates finished with \`$GATES\`."
+              echo ""
+              gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --paginate \
+                --jq '.jobs[] | select(.conclusion == "failure") | "- \(.name): " + ([.steps[] | select(.conclusion == "failure") | .name] | join(", "))' || true
+            fi
+            echo ""
+            echo "### Hook churn"
+            echo ""
+            if [ "$STATUS" = "merged" ]; then
+              git checkout --quiet "$MERGED_SHA"
+            fi
+            node scripts/local-studio/conflict-surface.ts --committed --base upstream/main --markdown || true
+          } > "$report"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the upstream-sync PR
+        if: steps.ff.outputs.done != 'true' && env.DRY_RUN != 'true'
+        run: |
+          report="$RUNNER_TEMP/report.md"
+          gh label create "$SYNC_LABEL" --color FBCA04 --description "Automated upstream merge" --force
+          existing="$(gh pr list --state open --label "$SYNC_LABEL" --base "$TARGET" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh pr comment "$existing" --body-file "$report"
+            if [ "$STATUS" = "merged" ]; then
+              git push origin --delete "$BRANCH" || true
+            fi
+            echo "Updated PR #$existing" >> "$GITHUB_STEP_SUMMARY"
+          else
+            if [ "$STATUS" = "conflict" ]; then
+              git push --force origin "$UPSTREAM_SHA:refs/heads/$BRANCH"
+            fi
+            gh pr create --base "$TARGET" --head "$BRANCH" --label "$SYNC_LABEL" \
+              --title "chore(sync): merge upstream t3code $(git rev-parse --short "$UPSTREAM_SHA") into $TARGET" \
+              --body-file "$report"
+          fi
