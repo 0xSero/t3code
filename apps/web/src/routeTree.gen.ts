@@ -32,6 +32,12 @@ import { Route as SettingsConnectionsRouteImport } from './routes/settings.conne
 import { Route as SettingsArchivedRouteImport } from './routes/settings.archived'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as ProjectsProjectKeyRouteImport } from './routes/projects.$projectKey'
+import { Route as LocalAiUsageRouteImport } from './routes/local-ai.usage'
+import { Route as LocalAiRunRouteImport } from './routes/local-ai.run'
+import { Route as LocalAiModelsRouteImport } from './routes/local-ai.models'
+import { Route as LocalAiMachinesRouteImport } from './routes/local-ai.machines'
+import { Route as LocalAiEndpointsRouteImport } from './routes/local-ai.endpoints'
+import { Route as LocalAiAgentsRouteImport } from './routes/local-ai.agents'
 import { Route as ChatPullRequestsRouteImport } from './routes/_chat.pull-requests'
 import { Route as ChatDraftDraftIdRouteImport } from './routes/_chat.draft.$draftId'
 import { Route as ChatEnvironmentIdThreadIdRouteImport } from './routes/_chat.$environmentId.$threadId'
@@ -151,6 +157,36 @@ const ProjectsProjectKeyRoute = ProjectsProjectKeyRouteImport.update({
   path: '/projects/$projectKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocalAiUsageRoute = LocalAiUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => LocalAiRoute,
+} as any)
+const LocalAiRunRoute = LocalAiRunRouteImport.update({
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => LocalAiRoute,
+} as any)
+const LocalAiModelsRoute = LocalAiModelsRouteImport.update({
+  id: '/models',
+  path: '/models',
+  getParentRoute: () => LocalAiRoute,
+} as any)
+const LocalAiMachinesRoute = LocalAiMachinesRouteImport.update({
+  id: '/machines',
+  path: '/machines',
+  getParentRoute: () => LocalAiRoute,
+} as any)
+const LocalAiEndpointsRoute = LocalAiEndpointsRouteImport.update({
+  id: '/endpoints',
+  path: '/endpoints',
+  getParentRoute: () => LocalAiRoute,
+} as any)
+const LocalAiAgentsRoute = LocalAiAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => LocalAiRoute,
+} as any)
 const ChatPullRequestsRoute = ChatPullRequestsRouteImport.update({
   id: '/pull-requests',
   path: '/pull-requests',
@@ -177,6 +213,12 @@ export interface FileRoutesByFullPath {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/agents': typeof LocalAiAgentsRoute
+  '/local-ai/endpoints': typeof LocalAiEndpointsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
+  '/local-ai/models': typeof LocalAiModelsRoute
+  '/local-ai/run': typeof LocalAiRunRoute
+  '/local-ai/usage': typeof LocalAiUsageRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -202,6 +244,12 @@ export interface FileRoutesByTo {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/agents': typeof LocalAiAgentsRoute
+  '/local-ai/endpoints': typeof LocalAiEndpointsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
+  '/local-ai/models': typeof LocalAiModelsRoute
+  '/local-ai/run': typeof LocalAiRunRoute
+  '/local-ai/usage': typeof LocalAiUsageRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -231,6 +279,12 @@ export interface FileRoutesById {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/_chat/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/agents': typeof LocalAiAgentsRoute
+  '/local-ai/endpoints': typeof LocalAiEndpointsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
+  '/local-ai/models': typeof LocalAiModelsRoute
+  '/local-ai/run': typeof LocalAiRunRoute
+  '/local-ai/usage': typeof LocalAiUsageRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -261,6 +315,12 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/pull-requests'
+    | '/local-ai/agents'
+    | '/local-ai/endpoints'
+    | '/local-ai/machines'
+    | '/local-ai/models'
+    | '/local-ai/run'
+    | '/local-ai/usage'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -286,6 +346,12 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/pull-requests'
+    | '/local-ai/agents'
+    | '/local-ai/endpoints'
+    | '/local-ai/machines'
+    | '/local-ai/models'
+    | '/local-ai/run'
+    | '/local-ai/usage'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -314,6 +380,12 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/_chat/pull-requests'
+    | '/local-ai/agents'
+    | '/local-ai/endpoints'
+    | '/local-ai/machines'
+    | '/local-ai/models'
+    | '/local-ai/run'
+    | '/local-ai/usage'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -508,6 +580,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/local-ai/usage': {
+      id: '/local-ai/usage'
+      path: '/usage'
+      fullPath: '/local-ai/usage'
+      preLoaderRoute: typeof LocalAiUsageRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
+    '/local-ai/run': {
+      id: '/local-ai/run'
+      path: '/run'
+      fullPath: '/local-ai/run'
+      preLoaderRoute: typeof LocalAiRunRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
+    '/local-ai/models': {
+      id: '/local-ai/models'
+      path: '/models'
+      fullPath: '/local-ai/models'
+      preLoaderRoute: typeof LocalAiModelsRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
+    '/local-ai/machines': {
+      id: '/local-ai/machines'
+      path: '/machines'
+      fullPath: '/local-ai/machines'
+      preLoaderRoute: typeof LocalAiMachinesRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
+    '/local-ai/endpoints': {
+      id: '/local-ai/endpoints'
+      path: '/endpoints'
+      fullPath: '/local-ai/endpoints'
+      preLoaderRoute: typeof LocalAiEndpointsRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
+    '/local-ai/agents': {
+      id: '/local-ai/agents'
+      path: '/agents'
+      fullPath: '/local-ai/agents'
+      preLoaderRoute: typeof LocalAiAgentsRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
     '/_chat/pull-requests': {
       id: '/_chat/pull-requests'
       path: '/pull-requests'
@@ -549,10 +663,22 @@ const ChatRouteChildren: ChatRouteChildren = {
 const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
 interface LocalAiRouteChildren {
+  LocalAiAgentsRoute: typeof LocalAiAgentsRoute
+  LocalAiEndpointsRoute: typeof LocalAiEndpointsRoute
+  LocalAiMachinesRoute: typeof LocalAiMachinesRoute
+  LocalAiModelsRoute: typeof LocalAiModelsRoute
+  LocalAiRunRoute: typeof LocalAiRunRoute
+  LocalAiUsageRoute: typeof LocalAiUsageRoute
   LocalAiIndexRoute: typeof LocalAiIndexRoute
 }
 
 const LocalAiRouteChildren: LocalAiRouteChildren = {
+  LocalAiAgentsRoute: LocalAiAgentsRoute,
+  LocalAiEndpointsRoute: LocalAiEndpointsRoute,
+  LocalAiMachinesRoute: LocalAiMachinesRoute,
+  LocalAiModelsRoute: LocalAiModelsRoute,
+  LocalAiRunRoute: LocalAiRunRoute,
+  LocalAiUsageRoute: LocalAiUsageRoute,
   LocalAiIndexRoute: LocalAiIndexRoute,
 }
 

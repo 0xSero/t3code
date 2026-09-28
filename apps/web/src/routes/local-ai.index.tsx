@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { LocalAiPlaceholder } from "../localStudio/LocalAiPlaceholder";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/local-ai/")({
-  component: LocalAiPlaceholder,
+  beforeLoad: () => {
+    throw redirect({ to: "/local-ai/machines", replace: true });
+  },
 });
