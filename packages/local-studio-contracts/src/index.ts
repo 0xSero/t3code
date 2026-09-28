@@ -5,6 +5,7 @@ export * from "./recipe.ts";
 export * from "./metrics.ts";
 export * from "./agent.ts";
 export * from "./snapshot.ts";
+export * from "./t3.ts";
 export * from "./api.ts";
 export * from "./formulas.ts";
 export * as fmt from "./format.ts";

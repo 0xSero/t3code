@@ -35,7 +35,7 @@ import {
 const LOCAL_STUDIO_ROUTE_PREFIX = "/api/local-studio";
 
 const ALLOWED_PATHS: ReadonlyArray<RegExp> = [
-  /^\/api\/(snapshot|fleet|events|health|tailnet|machines|peers|metrics|usage|recipes|launches|pods|models|lab|agents|host)(\/.*)?$/,
+  /^\/api\/(snapshot|fleet|events|health|tailnet|machines|peers|metrics|usage|recipes|launches|pods|models|lab|agents|host|t3)(\/.*)?$/,
   /^\/v1\/models$/,
   /^\/health$/,
 ];

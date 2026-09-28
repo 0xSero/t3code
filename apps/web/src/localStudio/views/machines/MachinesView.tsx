@@ -24,6 +24,7 @@ import { Skeleton } from "../../../components/ui/skeleton";
 import { controllerFetch, controllerJson } from "../../state/controllerClient";
 import { useLocalAiEnvironmentId } from "../../state/environment";
 import { reloadLocalAi, useLocalAi } from "../../state/localAiStore";
+import { AddEnvironmentButton } from "./AddEnvironmentButton";
 import { DiscoverDialog } from "./DiscoverDialog";
 import { MachineSection } from "./MachineSection";
 
@@ -158,7 +159,11 @@ export function MachinesView() {
           {list.map((machine, index) => (
             <div key={`${machine.id}:${machine.peerId ?? "self"}`} className="flex flex-col gap-6">
               {index > 0 ? <Separator /> : null}
-              <MachineSection machine={machine} onRemove={setRemoving} />
+              <MachineSection
+                machine={machine}
+                onRemove={setRemoving}
+                action={<AddEnvironmentButton environmentId={environmentId} machine={machine} />}
+              />
             </div>
           ))}
         </>

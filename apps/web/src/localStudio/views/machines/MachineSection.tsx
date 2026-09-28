@@ -1,4 +1,5 @@
 import { type MachineView, powerText, resOf, resText } from "@local-studio/local-ai-model";
+import type { ReactNode } from "react";
 
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
@@ -13,9 +14,11 @@ const MARK_BADGE = {
 export function MachineSection({
   machine,
   onRemove,
+  action,
 }: {
   readonly machine: MachineView;
   readonly onRemove: ((machine: MachineView) => void) | null;
+  readonly action?: ReactNode;
 }) {
   const snapshot = machine.snap;
   const host = snapshot?.host ?? null;
@@ -51,11 +54,14 @@ export function MachineSection({
         <span className="text-xs text-muted-foreground tabular-nums">
           {machine.online ? `${machine.gpuSummary} · ${powerText([machine])}` : "not answering"}
         </span>
-        {onRemove && machine.peerId ? (
-          <Button className="ms-auto" size="xs" variant="ghost" onClick={() => onRemove(machine)}>
-            Remove
-          </Button>
-        ) : null}
+        <div className="ms-auto flex items-center gap-2">
+          {action}
+          {onRemove && machine.peerId ? (
+            <Button size="xs" variant="ghost" onClick={() => onRemove(machine)}>
+              Remove
+            </Button>
+          ) : null}
+        </div>
       </div>
       {machine.error ? (
         <p className="text-xs text-destructive-foreground">{machine.error}</p>
