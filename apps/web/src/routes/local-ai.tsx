@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-import { LocalAiLayout } from "../localStudio/LocalAiLayout";
+import { LocalAiShell } from "../localStudio/shell/LocalAiShell";
 
 export const Route = createFileRoute("/local-ai")({
   component: LocalAiRouteLayout,
@@ -8,8 +8,8 @@ export const Route = createFileRoute("/local-ai")({
 
 function LocalAiRouteLayout() {
   return (
-    <LocalAiLayout>
+    <LocalAiShell>
       <Outlet />
-    </LocalAiLayout>
+    </LocalAiShell>
   );
 }

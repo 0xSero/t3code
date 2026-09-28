@@ -32,6 +32,7 @@ import { Route as SettingsConnectionsRouteImport } from './routes/settings.conne
 import { Route as SettingsArchivedRouteImport } from './routes/settings.archived'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as ProjectsProjectKeyRouteImport } from './routes/projects.$projectKey'
+import { Route as LocalAiMachinesRouteImport } from './routes/local-ai.machines'
 import { Route as ChatPullRequestsRouteImport } from './routes/_chat.pull-requests'
 import { Route as ChatDraftDraftIdRouteImport } from './routes/_chat.draft.$draftId'
 import { Route as ChatEnvironmentIdThreadIdRouteImport } from './routes/_chat.$environmentId.$threadId'
@@ -151,6 +152,11 @@ const ProjectsProjectKeyRoute = ProjectsProjectKeyRouteImport.update({
   path: '/projects/$projectKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocalAiMachinesRoute = LocalAiMachinesRouteImport.update({
+  id: '/machines',
+  path: '/machines',
+  getParentRoute: () => LocalAiRoute,
+} as any)
 const ChatPullRequestsRoute = ChatPullRequestsRouteImport.update({
   id: '/pull-requests',
   path: '/pull-requests',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
   '/_chat/pull-requests': typeof ChatPullRequestsRoute
+  '/local-ai/machines': typeof LocalAiMachinesRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/archived': typeof SettingsArchivedRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/pull-requests'
+    | '/local-ai/machines'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/pull-requests'
+    | '/local-ai/machines'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/usage'
     | '/welcome'
     | '/_chat/pull-requests'
+    | '/local-ai/machines'
     | '/projects/$projectKey'
     | '/settings/appearance'
     | '/settings/archived'
@@ -508,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/local-ai/machines': {
+      id: '/local-ai/machines'
+      path: '/machines'
+      fullPath: '/local-ai/machines'
+      preLoaderRoute: typeof LocalAiMachinesRouteImport
+      parentRoute: typeof LocalAiRoute
+    }
     '/_chat/pull-requests': {
       id: '/_chat/pull-requests'
       path: '/pull-requests'
@@ -549,10 +568,12 @@ const ChatRouteChildren: ChatRouteChildren = {
 const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
 interface LocalAiRouteChildren {
+  LocalAiMachinesRoute: typeof LocalAiMachinesRoute
   LocalAiIndexRoute: typeof LocalAiIndexRoute
 }
 
 const LocalAiRouteChildren: LocalAiRouteChildren = {
+  LocalAiMachinesRoute: LocalAiMachinesRoute,
   LocalAiIndexRoute: LocalAiIndexRoute,
 }
 
