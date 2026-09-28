@@ -16,3 +16,7 @@ export {
   type GatewayModelState,
   type LocalStudioGatewayClient,
 } from "./gateway.ts";
+export { ompApprovalModeFor, piNeedsApprovalGate } from "./approvalMode.ts";
+export { buildHarnessEnvironment, type LocalStudioHarness } from "./env.ts";
+export { buildHarnessModelsConfig, harnessModelId } from "./harnessConfig.ts";
+export { LocalAiSettings, OmpSettings, PiSettings } from "./settings.ts";

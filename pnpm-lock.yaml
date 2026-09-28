@@ -988,7 +988,14 @@ importers:
 
   packages/local-studio-pi-acp: {}
 
-  packages/local-studio-t3-providers: {}
+  packages/local-studio-t3-providers:
+    dependencies:
+      '@t3tools/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      effect:
+        specifier: 4.0.0-rc.115
+        version: 4.0.0-rc.115(patch_hash=0dfc4bb8ebd80fb3e06b91ef61346f5259517ab0f2437644fe95ae531084b1f5)
 
   packages/shared:
     dependencies:

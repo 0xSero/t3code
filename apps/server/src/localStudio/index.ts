@@ -12,6 +12,7 @@ import {
   failEnvironmentScopeRequired,
 } from "../auth/http.ts";
 import * as LocalStudioGateway from "./LocalStudioGateway.ts";
+import { localAiBootstrapLayer } from "../provider/localStudio/LocalAiBootstrap.ts";
 
 const LOCAL_STUDIO_ROUTE_PREFIX = "/api/local-studio";
 
@@ -55,4 +56,7 @@ const healthRouteLayer = Layer.unwrap(
   }),
 );
 
-export const localStudioRouteLayer = healthRouteLayer.pipe(Layer.provide(LocalStudioGateway.layer));
+export const localStudioRouteLayer = Layer.merge(
+  healthRouteLayer.pipe(Layer.provide(LocalStudioGateway.layer)),
+  localAiBootstrapLayer,
+);

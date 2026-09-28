@@ -10,7 +10,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
 
-class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError>()(
+export class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError>()(
   "LocalStudioGatewayError",
   {
     operation: Schema.String,
@@ -22,8 +22,6 @@ class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError
     return `Local Studio gateway ${this.operation} failed: ${this.detail}`;
   }
 }
-
-export type { LocalStudioGatewayError };
 
 export interface LocalStudioHarnessKey {
   readonly keyFile: string;
