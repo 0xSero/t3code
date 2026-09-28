@@ -85,9 +85,10 @@ async function send(
   path: string,
   init: RequestInit | undefined,
   retried: boolean,
+  timeoutMs: number,
 ): Promise<Response> {
   const access = await resolveAccess(environmentId);
-  const timeout = AbortSignal.timeout(LOCAL_AI_POLLING.requestTimeoutMs);
+  const timeout = AbortSignal.timeout(timeoutMs);
   const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
   const headers = new Headers(init?.headers);
   if (!headers.has("accept")) headers.set("accept", "application/json");
@@ -102,7 +103,7 @@ async function send(
   });
   if (response.status === 401 && !retried && !access.credentials) {
     appAtomRegistry.refresh(controllerAccessAtom(environmentId));
-    return send(environmentId, path, init, true);
+    return send(environmentId, path, init, true, timeoutMs);
   }
   return response;
 }
@@ -111,10 +112,11 @@ export async function controllerFetch<T>(
   environmentId: EnvironmentId,
   path: string,
   init?: RequestInit,
+  timeoutMs: number = LOCAL_AI_POLLING.requestTimeoutMs,
 ): Promise<T> {
   let response: Response;
   try {
-    response = await send(environmentId, path, init, false);
+    response = await send(environmentId, path, init, false, timeoutMs);
   } catch (error) {
     if (error instanceof DOMException && error.name === "TimeoutError")
       throw new Error("The Local Studio controller timed out.", { cause: error });
