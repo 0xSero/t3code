@@ -549,6 +549,12 @@ importers:
       '@effect/vitest':
         specifier: 4.0.0-rc.115
         version: 4.0.0-rc.115(patch_hash=172bd95ef73a13d322888984415d5d18d9d2aa8e13fa529eac235efac837e902)(effect@4.0.0-rc.115(patch_hash=0dfc4bb8ebd80fb3e06b91ef61346f5259517ab0f2437644fe95ae531084b1f5))
+      '@local-studio/pi-acp':
+        specifier: workspace:*
+        version: link:../../packages/local-studio-pi-acp
+      '@local-studio/t3-providers':
+        specifier: workspace:*
+        version: link:../../packages/local-studio-t3-providers
       '@t3tools/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -615,6 +621,15 @@ importers:
       '@legendapp/list':
         specifier: 'catalog:'
         version: 3.3.5(patch_hash=680cc6a5c5b4a4032e467e7b3fde22f89a84c0ee2e6eac6fda737d6277cc0806)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@local-studio/contracts':
+        specifier: workspace:*
+        version: link:../../packages/local-studio-contracts
+      '@local-studio/local-ai-model':
+        specifier: workspace:*
+        version: link:../../packages/local-studio-local-ai-model
+      '@local-studio/t3-providers':
+        specifier: workspace:*
+        version: link:../../packages/local-studio-t3-providers
       '@noble/hashes':
         specifier: 'catalog:'
         version: 1.8.0
@@ -958,6 +973,22 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.3.3(@types/node@24.12.4)(bufferutil@4.1.0)(esbuild@0.28.2)(jiti@2.7.0)(jsdom@30.1.0(@noble/hashes@1.8.0))(msw@2.12.11(@types/node@24.12.4)(typescript@7.0.2))(terser@5.48.0)(typescript@7.0.2)(unrun@0.2.39)(utf-8-validate@6.0.6)(yaml@2.9.0)
+
+  packages/local-studio-contracts:
+    dependencies:
+      zod:
+        specifier: ^4.1.0
+        version: 4.6.5
+
+  packages/local-studio-local-ai-model:
+    dependencies:
+      '@local-studio/contracts':
+        specifier: workspace:*
+        version: link:../local-studio-contracts
+
+  packages/local-studio-pi-acp: {}
+
+  packages/local-studio-t3-providers: {}
 
   packages/shared:
     dependencies:
