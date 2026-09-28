@@ -13,7 +13,7 @@ import * as ServerConfig from "../config.ts";
 import { expandHomePathWith } from "../pathExpansion.ts";
 import { type LocalStudioSettings, readSettings, updateConfig } from "./LocalStudioConfig.ts";
 
-class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError>()(
+export class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError>()(
   "LocalStudioGatewayError",
   {
     operation: Schema.String,
@@ -25,8 +25,6 @@ class LocalStudioGatewayError extends Schema.TaggedError<LocalStudioGatewayError
     return `Local Studio gateway ${this.operation} failed: ${this.detail}`;
   }
 }
-
-export type { LocalStudioGatewayError };
 
 export interface LocalStudioHarnessKey {
   readonly keyFile: string;

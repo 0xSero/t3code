@@ -5,12 +5,14 @@ import { useCallback } from "react";
 
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../components/ui/sidebar";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../components/ui/tooltip";
+import { useLocalAiSetupRedirect } from "./providers/useLocalAiSetupRedirect";
 
 export function isLocalAiPath(pathname: string): boolean {
   return pathname === LOCAL_AI_ROUTE_PATH || pathname.startsWith(`${LOCAL_AI_ROUTE_PATH}/`);
 }
 
 export function LocalAiUtilityButton() {
+  useLocalAiSetupRedirect();
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
   const handleClick = useCallback(() => {
