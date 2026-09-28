@@ -17,6 +17,7 @@ import {
   OpenAI,
   OpenCodeIcon,
 } from "../Icons";
+import { LOCAL_STUDIO_PROVIDER_CLIENT_DEFINITIONS } from "../../localStudio/providers/definitions";
 
 type ProviderSettingsSchema = {
   readonly fields: Readonly<Record<string, Schema.Top>>;
@@ -82,6 +83,7 @@ const PROVIDER_CLIENT_DEFINITIONS: readonly ProviderClientDefinition[] = [
     icon: AntigravityIcon,
     settingsSchema: AntigravitySettings,
   },
+  ...LOCAL_STUDIO_PROVIDER_CLIENT_DEFINITIONS,
 ];
 
 const PROVIDER_CLIENT_DEFINITION_BY_VALUE: Partial<

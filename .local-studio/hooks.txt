@@ -1,0 +1,13 @@
+apps/server/src/provider/builtInDrivers.ts	4	H1	spread LOCAL_STUDIO_DRIVERS and LocalStudioDriversEnv
+apps/server/src/server.ts	2	H2	localStudioRouteLayer in makeRoutesLayer
+apps/web/src/components/settings/providerDriverMeta.ts	2	H3	spread LOCAL_STUDIO_PROVIDER_CLIENT_DEFINITIONS
+apps/web/src/components/chat/providerIconUtils.ts	2	H4	spread LOCAL_STUDIO_PROVIDER_ICONS
+apps/web/src/components/sidebar/SidebarChrome.tsx	2	H5	LocalAiUtilityButton after Usage
+apps/web/src/components/sidebar/mainAppLocation.ts	3	H6	isLocalAiPath counts as a utility page
+packages/shared/src/cliRelease.ts	3	H7	CLI_RELEASE_REPOSITORY and CLI_RELEASE_TAG from cliReleaseRepository.ts
+apps/desktop/src/app/DesktopStatePaths.ts	2	H8	DEFAULT_STATE_DIR from editionIdentity.ts
+scripts/build-desktop-artifact.ts	30	H9+H11	edition identity env, optional passkey signing, bundled controller extraResources
+apps/server/package.json	2	H10	workspace deps @local-studio/pi-acp, @local-studio/t3-providers
+apps/web/package.json	3	H10	workspace deps @local-studio/contracts, @local-studio/local-ai-model, @local-studio/t3-providers
+pnpm-lock.yaml	-	G1	regenerated only
+apps/web/src/routeTree.gen.ts	-	G2	regenerated only

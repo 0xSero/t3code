@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
+import { isLocalAiPath } from "../../localStudio/nav";
 
 // Settings, Usage, and Pull Requests replace the sidebar utility row with a
 // Back button. Everything else is the main app. Legacy `/projects/<key>` links
@@ -10,7 +11,8 @@ export function isSidebarUtilityPage(pathname: string) {
     pathname.startsWith("/settings/") ||
     pathname.startsWith("/projects/") ||
     pathname === "/usage" ||
-    pathname === "/pull-requests"
+    pathname === "/pull-requests" ||
+    isLocalAiPath(pathname)
   );
 }
 

@@ -1,0 +1,26 @@
+{
+  "name": "@local-studio/pi-acp",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./bundle": {
+      "types": "./src/bundle.generated.ts",
+      "import": "./src/bundle.generated.ts"
+    },
+    "./main": {
+      "types": "./src/main.ts",
+      "import": "./src/main.ts"
+    }
+  },
+  "scripts": {
+    "bundle": "node scripts/bundle.ts",
+    "bundle:check": "node scripts/bundle.ts --check",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "esbuild": "0.28.2"
+  }
+}

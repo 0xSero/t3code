@@ -1,0 +1,6 @@
+repository=sybil-solutions/local-studio
+path=packages/contracts/src
+commit=38c76ada7d31f0e503aa41fa506db5e7daca4cc4
+source=/Users/sero/projects/worktrees/local-ai-system
+transform=relative imports rewritten from "./x" to "./x.ts"
+transform=vp fmt with the repository formatter config

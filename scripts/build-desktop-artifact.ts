@@ -54,7 +54,10 @@ import { Command, Flag } from "effect/unstable/cli";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 
 const LINUX_ICON_SIZES = [16, 22, 24, 32, 48, 64, 128, 256, 512] as const;
-const DESKTOP_APP_ID = "com.t3tools.t3code";
+const DESKTOP_APP_ID = process.env.T3CODE_EDITION_APP_ID?.trim() || "com.t3tools.t3code";
+const EDITION_PRODUCT_NAME = process.env.T3CODE_EDITION_PRODUCT_NAME?.trim();
+const EDITION_UPDATE_FEED_URL = process.env.T3CODE_EDITION_UPDATE_FEED_URL?.trim();
+const EDITION_CONTROLLER_DIR = process.env.T3CODE_EDITION_CONTROLLER_DIR?.trim();
 const APPLE_TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/u;
 
 const BuildPlatform = Schema.Literals(["mac", "linux", "win"]);
@@ -2614,6 +2617,10 @@ export function resolvePackageManagerUserAgent(packageManager: string): string {
 }
 
 export function resolveDesktopProductName(version: string): string {
+  if (EDITION_PRODUCT_NAME)
+    return resolveDesktopUpdateChannel(version) === "nightly"
+      ? `${EDITION_PRODUCT_NAME} (Nightly)`
+      : EDITION_PRODUCT_NAME;
   return resolveDesktopUpdateChannel(version) === "nightly"
     ? "T3 Code (Nightly)"
     : (desktopPackageJson.productName ?? "T3 Code");
@@ -2641,7 +2648,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   const buildConfig: Record<string, unknown> = {
     appId: DESKTOP_APP_ID,
     productName: resolveDesktopProductName(version),
-    artifactName: "T3-Code-${version}-${arch}.${ext}",
+    artifactName: `${(EDITION_PRODUCT_NAME || "T3 Code").replaceAll(" ", "-")}-\${version}-\${arch}.\${ext}`,
     electronLanguages: [...DESKTOP_ELECTRON_LANGUAGES],
     files: [
       ...DESKTOP_FILE_EXCLUSIONS,
@@ -2666,11 +2673,14 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       ...(platform === "linux" ? LINUX_BROWSER_SECRET_EXTRA_RESOURCES : []),
       ...(platform === "win" ? WINDOWS_SERVER_EXTRA_RESOURCES : []),
       ...(platform === "win" && wslRuntimeBundled ? WSL_RUNTIME_EXTRA_RESOURCES : []),
+      ...(EDITION_CONTROLLER_DIR ? [{ from: EDITION_CONTROLLER_DIR, to: "local-studio" }] : []),
     ],
   };
   const updateChannel = resolveDesktopUpdateChannel(version);
   if (!isDesktopPreviewVersion(version)) {
-    const publishConfig = yield* resolveGitHubPublishConfig(updateChannel);
+    const publishConfig = EDITION_UPDATE_FEED_URL
+      ? { provider: "generic", url: EDITION_UPDATE_FEED_URL, channel: updateChannel }
+      : yield* resolveGitHubPublishConfig(updateChannel);
     if (publishConfig) {
       buildConfig.publish = [publishConfig];
     } else if (mockUpdates) {
@@ -3613,7 +3623,7 @@ const buildDesktopArtifact = Effect.fn("buildDesktopArtifact")(function* (
   yield* fs.copy(stageResourcesDir, stageProdResourcesDir);
 
   const configuredMacPasskeySigning =
-    options.platform === "mac" && options.signed
+    options.platform === "mac" && options.signed && process.env.T3CODE_MAC_PASSKEY_SIGNING !== "off"
       ? yield* Effect.try({
           try: () => resolveMacPasskeySigningConfiguration(loadRepoEnv({ repoRoot })),
           catch: MacPasskeySigningConfigurationResolutionError.fromCause,
