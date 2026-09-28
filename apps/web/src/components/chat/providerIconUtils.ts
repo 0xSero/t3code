@@ -8,6 +8,7 @@ import {
   OpenAI,
   OpenCodeIcon,
 } from "../Icons";
+import { LOCAL_STUDIO_PROVIDER_ICONS } from "../../localStudio/providers/definitions";
 
 export const PROVIDER_ICON_BY_PROVIDER: Partial<Record<ProviderDriverKind, Icon>> = {
   [ProviderDriverKind.make("codex")]: OpenAI,
@@ -16,6 +17,7 @@ export const PROVIDER_ICON_BY_PROVIDER: Partial<Record<ProviderDriverKind, Icon>
   [ProviderDriverKind.make("cursor")]: CursorIcon,
   [ProviderDriverKind.make("grok")]: GrokIcon,
   [ProviderDriverKind.make("antigravity")]: AntigravityIcon,
+  ...LOCAL_STUDIO_PROVIDER_ICONS,
 };
 
 export type ModelEsque = {
