@@ -43,7 +43,8 @@ export function buildHarnessModelsConfig(input: HarnessModelsConfigInput): Harne
     apiKey: `!cat ${shellQuote(input.keyFile)}`,
     headers: {
       "X-Local-Studio-Client": input.harness,
-      "X-Local-Studio-Workspace": LOCAL_STUDIO_WORKSPACE_ENV,
+      "X-Local-Studio-Workspace":
+        input.harness === "pi" ? `$${LOCAL_STUDIO_WORKSPACE_ENV}` : LOCAL_STUDIO_WORKSPACE_ENV,
     },
     models,
   };

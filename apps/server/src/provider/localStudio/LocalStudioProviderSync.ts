@@ -155,8 +155,7 @@ const syncOnce = Effect.gen(function* () {
   const settings = yield* settingsService.getSettings;
   const home = agentHome();
   const created = new Set(yield* readCreated(home));
-  const nextInstances: Record<string, ProviderInstanceConfig> = { ...settings.providerInstances };
-  let changed = false;
+  const updates: Record<string, ProviderInstanceConfig> = {};
 
   for (const profile of PROVIDER_PROFILES) {
     const id = instanceIdFor(profile);
@@ -199,15 +198,16 @@ const syncOnce = Effect.gen(function* () {
     };
     if (!current) yield* warmUp(binary, profile, built.environment);
     created.add(id);
-    if (!sameEnvelope(current, envelope)) {
-      nextInstances[id] = envelope;
-      changed = true;
-    }
+    if (!sameEnvelope(current, envelope)) updates[id] = envelope;
   }
 
-  if (changed) {
+  if (Object.keys(updates).length > 0) {
+    const latest = yield* settingsService.getSettings;
     yield* settingsService.updateSettings({
-      providerInstances: nextInstances as ServerSettings["providerInstances"],
+      providerInstances: {
+        ...latest.providerInstances,
+        ...updates,
+      } as ServerSettings["providerInstances"],
     });
     yield* Effect.logInfo("Local Studio provider instances synced", {
       models: models.value.map((model) => model.id),
