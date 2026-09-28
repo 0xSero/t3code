@@ -986,7 +986,14 @@ importers:
         specifier: workspace:*
         version: link:../local-studio-contracts
 
-  packages/local-studio-pi-acp: {}
+  packages/local-studio-pi-acp:
+    devDependencies:
+      '@types/node':
+        specifier: 24.12.4
+        version: 24.12.4
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
 
   packages/local-studio-t3-providers: {}
 
