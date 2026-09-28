@@ -13,3 +13,5 @@ export const LOCAL_STUDIO_DRIVERS: ReadonlyArray<AnyProviderDriver<LocalStudioDr
   OmpDriver,
   PiDriver,
 ];
+
+export { localStudioProviderSyncLayer } from "./LocalStudioProviderSync.ts";

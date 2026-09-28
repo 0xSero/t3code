@@ -6,6 +6,7 @@ import * as ControllerSidecar from "./ControllerSidecar.ts";
 import * as LocalStudioGateway from "./LocalStudioGateway.ts";
 import { makeRoutes } from "./LocalStudioRoutes.ts";
 import { localAiBootstrapLayer } from "../provider/localStudio/LocalAiBootstrap.ts";
+import { localStudioProviderSyncLayer } from "../provider/localStudio/LocalStudioProviderSync.ts";
 
 const routesLayer = Layer.unwrap(
   Effect.gen(function* () {
@@ -16,4 +17,8 @@ const routesLayer = Layer.unwrap(
   }),
 ).pipe(Layer.provide(LocalStudioGateway.layer));
 
-export const localStudioRouteLayer = Layer.merge(routesLayer, localAiBootstrapLayer);
+export const localStudioRouteLayer = Layer.mergeAll(
+  routesLayer,
+  localAiBootstrapLayer,
+  localStudioProviderSyncLayer,
+);
